@@ -1,0 +1,189 @@
+---
+title: "Introduction Julia"
+subtitle: "Data Science and Machine Learning"
+author: "Emmanuel Rialland"
+date: "April, 29th 2020"
+output:
+  xaringan::moon_reader:
+    chakra: libs/remark-latest.min.js
+    lib_dir: libs
+    yolo: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+#xaringan::summon_remark()
+options(htmltools.dir.version = FALSE)
+options(servr.daemon = TRUE)
+```
+
+
+```{r, include=FALSE}
+JuliaCall::julia_markdown_setup(JULIA_HOME = "/opt/julia/bin", notebook = TRUE)
+```
+
+
+--- 
+
+# Plan for today
+
+- What is Julia and short comparison
+
+--
+
+- Data Science - COVID 19 as an example
+
+--
+
+- Machine Learning - the Julia Flux.jl library
+
+---
+class: inverse, center, middle
+
+# What is Julia?
+
+---
+
+---
+class: inverse, center, middle
+
+# Data science with COVD19 
+
+---
+
+---
+class: inverse, center, middle
+
+# The `Flux.jl` machine learning library
+
+---
+
+# Is it really quick?
+
+Nice picture
+
+***
+
+---
+
+Code:
+
+```{julia}
+A = B = [1 2; 3 4]
+2 * A + 3 * B
+
+@show 2 * A + 3 * B
+#>> 2A + 3B = [5 10; 15 20]
+```
+
+
+```{julia}
+Γ = Λ = [1 2; 3 4]
+2 * Γ + 3 * Λ
+
+@show 2 * Γ + 3 * Λ
+#>> 2Γ + 3Λ = [5 10; 15 20]
+```
+
+
+```{julia}
+length(methods(*))
+#>> 368
+```
+
+
+```{julia}
+@show first(methods(*))
+#>> first(methods(*)) = *(x::Bool, z::Complex{Bool}) in Base at complex.jl:290
+```
+
+
+```{julia}
+function add(x::Int64, y::Int64)::Int64
+  return x + y
+end
+
+function add(x::Float64, y::Float64)::Float64
+  return x + 2.0 * y
+end
+
+function add(x::Any, y::Any)::Any
+  return x + y
+end
+```
+
+
+```
+@code_llvm add(1.0, 2.0)
+
+
+# define double @julia_add_18854(double, double) {
+# top:
+# ; ┌ @ float.jl:405 within `*'
+#    %2 = fmul double %1, 2.000000e+00
+# ; └
+# ; ┌ @ float.jl:401 within `+'
+#    %3 = fadd double %2, %0
+# ; └
+#   ret double %3
+# }
+
+
+@code_native add(1.0, 2.0)
+
+# ; ┌ @ scratchpad.jl:27 within `add'
+# ; │┌ @ scratchpad.jl:27 within `*'
+#     vaddsd  %xmm1, %xmm1, %xmm1
+# ; │└
+# ; │┌ @ float.jl:401 within `+'
+#     vaddsd  %xmm0, %xmm1, %xmm0
+# ; │└
+#     retq
+#     nopl    (%rax)
+# ; └
+
+
+@code_llvm add(1, 2)
+# define i64 @julia_add_18857(i64, i64) {
+# top:
+# ; ┌ @ int.jl:53 within `+'
+#    %2 = add i64 %1, %0
+# ; └
+#   ret i64 %2
+# }
+
+@code_native add(1, 2)
+# ; ┌ @ scratchpad.jl:23 within `add'
+# ; │┌ @ scratchpad.jl:23 within `+'
+#     leaq    (%rdi,%rsi), %rax
+# ; │└
+#     retq
+#     nopw    %cs:(%rax,%rax)
+#     nop
+# ; └
+```
+
+
+$$
+\frac{dx}{dt} = \sigma (y - x) \\
+\frac{dy}{dt} = x (\rho - z) - y \\
+\frac{dz}{dt} = x y - \beta z
+$$
+
+
+
+---
+class: center, middle
+
+# Thanks and links
+
+Written in **RStudio** in [R Markdown](https://rmarkdown.rstudio.com)
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+
+(C) Emmanuel Rialland - [Emmanuel-R8.github.io](https://Emmanuel-R8.github.io/) & [www.linkedin.com/in/emmanuelrialland](https://www.linkedin.com/in/emmanuelrialland)
+
+
