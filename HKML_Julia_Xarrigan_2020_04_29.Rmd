@@ -192,51 +192,6 @@ end every 10
 ]
 
 
-
----
-# Syntax Shootout
-
-$$
-\begin{align}
-a, b &\in \mathbb{R} \\
-A,B &\in \mathbb{R}^{m \times n} 
-\end{align}
-$$
-
-$$
-aA + bB
-$$
-
-.pull-left-50[
-## Python (and Numpy)
-
-```
-import numpy
-A = B = [[1, 2], [3, 4]]
-
-# 2.A + 3.B
-numpy.add(numpy.multiply(2, A), 
-          numpy.multiply(3, B))
-```
-]
-
-.pull-right-50[
-## Julia
-
-```
-A = B = [1 2; 3 4]
-2 * A + 3 * B
-```
-
-or better looking
-
-```
-Γ = Λ = [1 2; 3 4]
-2 * Γ + 3 * Λ
-```
-]
-
-
 ---
 # Typing and Multiple dispatch example: addition (1/2)
 
@@ -366,6 +321,51 @@ length(methods(+))
   - No need to reimplement all methods.
 
 - Recommended viewing: _The Unreasonable Effectiveness of Multiple Dispatch_ by Stefan Karpinski
+
+
+
+---
+# This is why you can write this
+
+$$
+\begin{align}
+a, b &\in \mathbb{R} \\
+A,B &\in \mathbb{R}^{m \times n} 
+\end{align}
+$$
+
+$$
+aA + bB
+$$
+
+.pull-left-50[
+## Python (and Numpy)
+
+```
+import numpy
+A = B = [[1, 2], [3, 4]]
+
+# 2.A + 3.B
+numpy.add(numpy.multiply(2, A), 
+          numpy.multiply(3, B))
+```
+]
+
+.pull-right-50[
+## Julia
+
+```
+A = B = [1 2; 3 4]
+2 * A + 3 * B
+```
+
+or better looking
+
+```
+Γ = Λ = [1 2; 3 4]
+2 * Γ + 3 * Λ
+```
+]
 
 ---
 class: inverse, center, middle
