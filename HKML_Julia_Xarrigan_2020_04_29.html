@@ -444,6 +444,17 @@ The **mechanistic** model works as follows:
 ![](BedUsage.png)
 
 ---
+# Before optimisation
+
+![](Vignette1.png)
+
+
+---
+# After 3 minute optimisation
+
+![](Vignette2.png)
+
+---
 # Code samples
 
 
@@ -452,13 +463,23 @@ The **mechanistic** model works as follows:
 ### epiDynamics! defines the stepwise evolution:
 ###    function epiDynamics!(dP, P, params, t)
 
+using DifferentialEquations
 model = ODEProblem(epiDynamics!, P0, tSpan, parameters);
 
-# Note: progress steps might be too quick to see!
 sol = solve(model, Tsit5(); progress = false, progress_steps = 5);
+
+
+# Load the Blackbax optimisation library
+using BlackBoxOptim
+result = bboptimize(p -&gt; singleCountryLoss(country, DiseaseParameters, p), 
+                    SearchRange = countryRange;
+                    Method = :adaptive_de_rand_1_bin, 
+                    MaxTime = maxtime, 
+                    TargetFitness = 2.0)
 
 ```
 
+The actual code is available on Github.
 
 ---
 # Limitations
@@ -598,7 +619,7 @@ vgg.layers
 #       .....
 #       Dense(25088, 4096, relu), Dropout(0.5), 
 #       Dense(4096, 4096, relu), Dropout(0.5), 
-#       Dense(4096, 1000), softmax)
+#       Dense(4096, 1000), softmax))
 ```
 ]
 
