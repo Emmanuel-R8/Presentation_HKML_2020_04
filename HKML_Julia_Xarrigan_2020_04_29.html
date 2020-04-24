@@ -1,37 +1,26 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Introduction to Julia</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Emmanuel Rialland" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/fc.css" rel="stylesheet" />
+    <link href="libs/remark-css/fc-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Introduction to Julia
+## Data Science and Machine Learning
+### Emmanuel Rialland
+### April, 29th 2020
+
 ---
-title: "Introduction to Julia"
-subtitle: "Data Science and Machine Learning"
-author: "Emmanuel Rialland"
-date: "April, 29th 2020"
-output:
-  xaringan::moon_reader:
-    css: [default, fc, fc-fonts]
-    yolo: FALSE
-    chakra: libs/remark-latest.min.js
-    lib_dir: libs
-    logo: Julia_logo.svg
-    nature:
-      ratio: '16:9'
-      navigation: 
-        click: TRUE
-      highlightStyle: github
-      highlightLines: yes
-      countIncrementalSlides: no
-mathjax: true
----
 
-```{r include=FALSE}
 
-knitr::opts_chunk$set(
-#  class.source = "numberLines lineAnchors",
-#  class.output = c("numberLines lineAnchors chunkout")
-)
 
-options(htmltools.dir.version = FALSE)
-options(servr.daemon = TRUE)
-
-JuliaCall::julia_markdown_setup(JULIA_HOME = "/opt/julia/bin", notebook = TRUE)
-```
 
 
 --- 
@@ -158,11 +147,12 @@ class: center
 # Code walk
 
 .pull-left-25[
-$\frac{dx}{dt} = \sigma (y - x)$       $\frac{dy}{dt} = x (\rho - z) - y$      $\frac{dz}{dt} = x y - \beta z$
+`\(\frac{dx}{dt} = \sigma (y - x)\)`       `\(\frac{dy}{dt} = x (\rho - z) - y\)`      `\(\frac{dz}{dt} = x y - \beta z\)`
 ]
 
 .pull-right-75[
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 using Plots
 
 # define a structure to gather the Lorenz attractor's parameters
@@ -197,10 +187,10 @@ end every 10
 # Syntax Shootout
 
 $$
-\begin{align}
-a, b &\in \mathbb{R} \\
-A,B &\in \mathbb{R}^{m \times n} 
-\end{align}
+`\begin{align}
+a, b &amp;\in \mathbb{R} \\
+A,B &amp;\in \mathbb{R}^{m \times n} 
+\end{align}`
 $$
 
 $$
@@ -244,7 +234,8 @@ or better looking
 
 
 .pull-left-50[
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 function add(x::Int64, y::Int64)::Int64
   return x + y
 end
@@ -263,7 +254,8 @@ end
 --
 
 .pull-right-50[
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 function add(x::Float64, y::Float64)::Float64
   return x + 2.0 * y
 end;
@@ -287,7 +279,8 @@ end;
 
 
 .pull-left-50[
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 function add(x::Int64, y::Int64)::Int64
   return x + y
 end;
@@ -305,7 +298,8 @@ end;
 --
 
 .pull-right-50[
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 function add(x::Float64, y::Float64)::Float64
   return x + 2.0 * y
 end;
@@ -323,13 +317,27 @@ end;
 ---
 # Just Ahead of Time compilation 
 
-```{julia}
+
+```julia
 length(methods(+))
 ```
 
+```
+## 170
+```
 
-```{julia}
+
+
+```julia
 @show first(methods(+))
+```
+
+```
+## first(methods(+)) = +(x::Bool, z::Complex{Bool}) in Base at complex.jl:286
+```
+
+```
+## +(x::Bool, z::Complex{Bool}) in Base at complex.jl:286
 ```
 
 ---
@@ -395,11 +403,11 @@ There are 4 types of epidemiological models:
 
 The **mechanistic** model works as follows:
 
-- susceptible individuals are exposed and infected through contact with contagious individuals. Each contagious individual causes on average $R_0$ new infections.
+- susceptible individuals are exposed and infected through contact with contagious individuals. Each contagious individual causes on average `\(R_0\)` new infections.
 
 - Transmissibility of the virus could have seasonal variation which is parameterised with the parameter “seasonal forcing” (amplitude) and “peak month” (month of most active transmission).
 
-- Exposed individuals progress through sequential conditions after an average latency: asymptomatic $\rightarrow$ symptomatic  $\rightarrow$ severe $\rightarrow$ critical $\rightarrow$ death. At each stage, an individual can recover.
+- Exposed individuals progress through sequential conditions after an average latency: asymptomatic `\(\rightarrow\)` symptomatic  `\(\rightarrow\)` severe `\(\rightarrow\)` critical `\(\rightarrow\)` death. At each stage, an individual can recover.
 
 
 ---
@@ -438,7 +446,8 @@ The **mechanistic** model works as follows:
 ---
 # Code samples
 
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 ### Define a model as an Ordinary Differential Equation
 ### epiDynamics! defines the stepwise evolution:
 ###    function epiDynamics!(dP, P, params, t)
@@ -447,7 +456,6 @@ model = ODEProblem(epiDynamics!, P0, tSpan, parameters);
 
 # Note: progress steps might be too quick to see!
 sol = solve(model, Tsit5(); progress = false, progress_steps = 5);
-
 
 ```
 
@@ -489,7 +497,7 @@ Machine Learning Stack
 ---
 # Examples
 
-- Perceptron is a simple formula: optimise $Loss(y - \hat{y})$ for $y = \sigma(W . x + b)$. Autodiff is enough.
+- Perceptron is a simple formula: optimise `\(Loss(y - \hat{y})\)` for `\(y = \sigma(W . x + b)\)`. Autodiff is enough.
 
 But this doesn't work for richer models:
 
@@ -511,10 +519,11 @@ But this doesn't work for richer models:
 
 
 .pull-left-50[
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 using Zygote, Flux
 
-dense(W, b, σ = identity) = x -> σ.(W * x .+ b)
+dense(W, b, σ = identity) = x -&gt; σ.(W * x .+ b)
 
 chain(f...) = foldl(∘, reverse(f))
 
@@ -538,7 +547,8 @@ m -= η * δm
 .pull-right-50[
 ## Let's add calls to `Cuda` and `Python`
 
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 using CuArrays
 
 cuda() do
@@ -570,7 +580,8 @@ end
 ## For computer vision models, see `Metalhead.jl`
 
 .pull-left-60[
-```{julia eval=FALSE,cache=FALSE}
+
+```julia
 using Metalhead
 using Metalhead: classify
 
@@ -580,8 +591,8 @@ img = "Dog.jpg"
 
 vgg.layers
 
-# Chain(Conv((3, 3), 3=>64, relu), 
-#       Conv((3, 3), 64=>64, relu), 
+# Chain(Conv((3, 3), 3=&gt;64, relu), 
+#       Conv((3, 3), 64=&gt;64, relu), 
 #       MaxPool((2, 2), pad = (0, 0, 0, 0), 
 #       stride = (2, 2)), 
 #       .....
@@ -626,7 +637,7 @@ Youtube channel: [https://www.youtube.com/user/JuliaLanguage]()
 
 _JuliaCon 2019 | The Unreasonable Effectiveness of Multiple Dispatch | Stefan Karpinski_ [https://www.youtube.com/watch?v=kc9HwsxE1OY]()
 
-Osthus, D., Gattiker, J., Priedhorsky, R., & Del Valle, S. Y. (2019). _Dynamic Bayesian influenza forecasting in the United States with hierarchical discrepancy (with discussion)_. Bayesian Analysis, 14(1), 261-312.
+Osthus, D., Gattiker, J., Priedhorsky, R., &amp; Del Valle, S. Y. (2019). _Dynamic Bayesian influenza forecasting in the United States with hierarchical discrepancy (with discussion)_. Bayesian Analysis, 14(1), 261-312.
 
 *** 
 
@@ -634,6 +645,131 @@ Written in **RStudio** in [R Markdown]([https://rmarkdown.rstudio.com]())
 
 Slides created via the R package [**xaringan**]([https://github.com/yihui/xaringan]()).
 
-(C) Emmanuel Rialland - [Emmanuel-R8.github.io]() & [www.linkedin.com/in/emmanuelrialland]()
+(C) Emmanuel Rialland - [Emmanuel-R8.github.io]() &amp; [www.linkedin.com/in/emmanuelrialland]()
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="libs/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"navigation": {
+"click": true
+},
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
 
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
 
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
