@@ -98,7 +98,7 @@ _Source: [https://julialang.org/blog/2012/02/why-we-created-julia/](https://juli
 
 - Interactive REPL like Python or R. Julia is the _Ju_ in Jupyter
 
-- Your preferred IDE supports it. Atom is the most mature, but VS Code, VIM, Emacs, SublimeText work fine. This presentation is made with RStudio.
+- Your preferred IDE supports it. Atom is the most mature, but VS Code, VIM, Emacs, SublimeText work fine. (This presentation is made with RStudio which can include Julia in its markdown.)
 
 - Great community active and helpful on Discourse and Slack.
 
@@ -107,7 +107,7 @@ _Source: [https://julialang.org/blog/2012/02/why-we-created-julia/](https://juli
 ---
 # It is fast - (Old) Benchmark
 
-![Simple benchmark](Julia_benchmarks.png)
+![Simple benchmark](Julia_benchmarks.small.png)
 
 _Julia v1.0.0, SciLua v1.0.0-b12, Rust 1.27.0, Go 1.9, Java 1.8.017, Javascript V8 6.2.414.54, Matlab R2018a, Python 3.6.3 (NumPy v1.14.0), R 3.5.0, and Octave 4.2.2. C and Fortran are compiled with gcc 7.3.1. See [https://julialang.org/benchmarks/]()_
 
@@ -151,17 +151,20 @@ class: inverse, center, middle
 class: center
 # It is also pretty!
 
-![Lorenz Attractor](Lorenz_Attractor.gif)
+![Lorenz Chaotic Attractor](Lorenz_Attractor.gif)
 [https://docs.juliaplots.org/](https://docs.juliaplots.org/latest/)
 
 ---
 # Code walk
 
-.pull-left-25[
-$\frac{dx}{dt} = \sigma (y - x)$       $\frac{dy}{dt} = x (\rho - z) - y$      $\frac{dz}{dt} = x y - \beta z$
-]
+$$
+\frac{dx}{dt} = \sigma \left( y - x \right) \mbox{   ;    }
+\frac{dy}{dt} = x \left( \rho - z \right) - y  \mbox{   ;    }
+\frac{dz}{dt} = x y - \beta z
+$$
 
-.pull-right-75[
+--
+
 ```{julia eval=FALSE,cache=FALSE}
 using Plots
 
@@ -171,7 +174,6 @@ Base.@kwdef mutable struct LorenzAttractor
     σ::Float64 = 10;        ρ::Float64 = 28;        β::Float64 = 8/3;   dt::Float64 = 0.02
 end
 
-# 'l' is an instance of the Lorenz structure
 l = LorenzAttractor()
 
 function step!(l::LorenzAttractor)
@@ -184,128 +186,12 @@ plt = plot3d(1, title = "Lorenz Attractor", marker = 2,
                 xlim = (-30, 30),   ylim = (-30, 30),   zlim = (0, 60))
 
 # build an animated gif by pushing new points to the plot, saving every 10th frame
-@gif for i=1:1500
+@gif for i = 1:1500
     step!(l)                          # Calculate the next point
     push!(plt, l.x, l.y, l.z)         # Add that point to the plot
 end every 10
 ```
-]
 
-
----
-# Typing and Multiple dispatch example: addition (1/2)
-
-## Julia first compiles to LLVM
-
-
-.pull-left-50[
-```{julia eval=FALSE,cache=FALSE}
-function add(x::Int64, y::Int64)::Int64
-  return x + y
-end
-
-
-@code_llvm add(1, 2)
-
-# define i64 @julia_add_18857(i64, i64) {
-# top:
-#   %2 = add i64 %1, %0
-#   ret i64 %2
-# }
-```
-]
-
---
-
-.pull-right-50[
-```{julia eval=FALSE,cache=FALSE}
-function add(x::Float64, y::Float64)::Float64
-  return x + 2.0 * y
-end;
-
-
-@code_llvm add(1.0, 2.0)
-
-# define double @julia_add_18854(double, double) {
-# top:
-#  %2 = fmul double %1, 2.000000e+00
-#  %3 = fadd double %2, %0
-# ret double %3
-# }
-```
-]
-
----
-# Typing and Multiple-dispatch example: addition (2/2)
-
-## Then LLVM to Assembly
-
-
-.pull-left-50[
-```{julia eval=FALSE,cache=FALSE}
-function add(x::Int64, y::Int64)::Int64
-  return x + y
-end;
-
-
-@code_native add(1, 2)
-
-#   leaq    (%rdi,%rsi), %rax
-#   retq
-#   nopw    %cs:(%rax,%rax)
-#   nop
-```
-]
-
---
-
-.pull-right-50[
-```{julia eval=FALSE,cache=FALSE}
-function add(x::Float64, y::Float64)::Float64
-  return x + 2.0 * y
-end;
-
-
-@code_native add(1.0, 2.0)
-
-#     vaddsd  %xmm1, %xmm1, %xmm1
-#     vaddsd  %xmm0, %xmm1, %xmm0
-#   retq
-#   nopl    (%rax)
-```
-]
-
----
-# Just Ahead of Time compilation 
-
-```{julia}
-length(methods(+))
-```
-
-
-```{julia}
-@show first(methods(+))
-```
-
----
-# Typing
-
-- Julia has a whole zoo of different types: Primitive, Abstract vs. Concrete, Immutable vs. Mutable Composite, Union, Parametric, Aliases...
-
-- Key points:
-
-  - Dynamic typing when early development, strong typing to catch bugs later.
-
-  - High-level code is easy to express with Abstract and Parametric types: 
-  
-    - `Int64` is a subtype of `Integer`, and `Float`  is a subtype of `AbstractFloat`, which are subtypes of `Number`.
-    
-    - You can have `Matrix(Float64)` or `Matrix{Int64}`
-  
-  - Sub-typing (and generic functions) allows easy algorithmic specialisation and high speed
-  
-    - Easy to specialise on `DenseArray` or `SparseArray` for specific algorithms, and default on generic algorithms for others (just an example).
-  
 
 ---
 # Generic function / Multiple dispatch 
@@ -319,6 +205,8 @@ length(methods(+))
   - No need to sub-class: no new class, can provide completely different representation.
   
   - No need to reimplement all methods.
+  
+- More natural fit for scientific programming where functions (of any number of parameters) are everywhere.
 
 - Recommended viewing: _The Unreasonable Effectiveness of Multiple Dispatch_ by Stefan Karpinski
 
@@ -341,7 +229,7 @@ $$
 .pull-left-50[
 ## Python (and Numpy)
 
-```
+```{python eval=FALSE}
 import numpy
 A = B = [[1, 2], [3, 4]]
 
@@ -354,18 +242,131 @@ numpy.add(numpy.multiply(2, A),
 .pull-right-50[
 ## Julia
 
-```
+```{julia eval=FALSE}
 A = B = [1 2; 3 4]
 2 * A + 3 * B
 ```
 
-or better looking
+or better looking (the language specifies how to enter many useful Unicode characters)
 
 ```
 Γ = Λ = [1 2; 3 4]
 2 * Γ + 3 * Λ
 ```
 ]
+
+
+---
+# Typing and multiple dispatch example: addition (1/2)
+
+## Julia first compiles to LLVM
+
+```{julia cache=FALSE,message=FALSE,echo=FALSE}
+using InteractiveUtils
+```
+
+.pull-left-50[
+```{julia cache=FALSE}
+function add_mult(a::Int64, b::Int64)::Int64
+  return a + b * 7
+end
+
+@code_llvm debuginfo=:none add_mult(2, 3)
+```
+]
+
+--
+
+.pull-right-50[
+```{julia cache=FALSE}
+function add_mult(a::Float64, b::Float64)::Float64
+  return a + b * 7.0
+end;
+
+
+@code_llvm debuginfo=:none add_mult(2.0, 3.0)
+```
+]
+
+--
+
+**Compilation is not Ahead of Time or Just in Time. It is Just Ahead of Time.**
+
+---
+# Typing and multiple dispatch example: addition (2/2)
+
+## Then LLVM to Assembly
+
+
+
+.pull-left-50[
+```{julia cache=FALSE,eval=FALSE}
+function add_mult(a::Int64, b::Int64)::Int64
+  return a + b * 7
+end
+```
+
+```{julia cache=FALSE}
+@code_native debuginfo=:none add_mult(2, 3)
+```
+]
+
+--
+
+.pull-right-50[
+```{julia cache=FALSE,eval=FALSE}
+function add_mult(a::Float64, b::Float64)::Float64
+  return a + b * 7.0
+end;
+```
+
+```{julia cache=FALSE}
+@code_native debuginfo=:none add_mult(2.0, 3.0)
+```
+]
+
+---
+# Multiple dispatch is used extensively 
+
+For example, the `+` function:
+
+```{julia}
+length(methods(+))
+```
+
+
+```{julia}
+@show first(methods(+))
+```
+
+---
+# Typing
+
+If we had just defined `function add(x, y) return x + y end`, same result.
+
+--
+
+But typing catches bugs, the compiler can skip sorting through methods, and yields clearer code.
+
+--
+
+- Julia has a whole zoo of different types: Primitive, Abstract vs. Concrete, Immutable vs. Mutable Composite, Union, Parametric, Aliases...
+
+- Key points:
+
+  - Dynamic typing when early development, strong typing to catch bugs later.
+
+  - High-level code is easy to express with Abstract and Parametric types: 
+  
+    + `Int64` is a subtype of `Integer`, and `Float`  is a subtype of `AbstractFloat`, which are subtypes of `Number`.
+    
+    + You can have `Matrix(Float64)` or `Matrix{Int64}`
+
+
+  - Sub-typing (and generic functions) allows easy algorithmic specialisation and high speed
+  
+    + Easy to specialise on `DenseArray` or `SparseArray` for specific algorithms, but default to generic algorithms for others (just an example).
+  
 
 ---
 class: inverse, center, middle
@@ -390,14 +391,29 @@ There are 4 types of epidemiological models:
 
 - **Data-assimilation/dynamic models** usually involve embedding a mechanistic model into a probabilistic framework, allowing for the explicit modeling of the disease transmission process and observational noise with stochastic and/or Bayesian formalism. That is, the dynamic modeling approach combines two sources of uncertainty in the modeling; parametric uncertainty in the mechanistic model and random uncertainty in the observations.
 
+(Only snippets of code included.)
+
 ---
-# Overview
+# Overview 
 
 The **mechanistic** model works as follows:
 
 - susceptible individuals are exposed and infected through contact with contagious individuals. Each contagious individual causes on average $R_0$ new infections.
 
 - Transmissibility of the virus could have seasonal variation which is parameterised with the parameter “seasonal forcing” (amplitude) and “peak month” (month of most active transmission).
+
+```{julia eval=FALSE}
+# Seasonal forcing parameter ϵ
+const ϵ = Dict(:north => 0.2, :tropical => 0.0, :south => 0.2)
+
+# Gives R_0 at a given date
+function R₀(d; r₀ = baseR₀, latitude = :north)
+    eps = ϵ[latitude]
+    peak = peakDate[latitude]
+
+    return r₀ * (1 + eps * cos(2.0 * π * (d - peak) / 365.25))
+end
+```
 
 - Exposed individuals progress through sequential conditions after an average latency: asymptomatic $\rightarrow$ symptomatic  $\rightarrow$ severe $\rightarrow$ critical $\rightarrow$ death. At each stage, an individual can recover.
 
@@ -407,8 +423,18 @@ The **mechanistic** model works as follows:
 
 - The proportion/probability of passing from condition to condition depends on age
 
+- How to use what is seen in one country in another country? Age pyramid accounts for a lot of the differences. 
+
 - COVID-19 is much more severe in the elderly and proportion of elderly in a community is therefore an important determinant of the overall burden on the health care system and the death toll. We collected age distributions for many countries from data provided by the UN and make those available as input parameters. Furthermore, we use data provided by the epidemiology group by the Chinese CDC to estimate the fraction of severe and fatal cases by age group.
 
+```{julia eval=FALSE}
+#-- Susceptibility to contagion and transition from a compartment to another
+const AgeGroup = ["0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+"]
+const zₐ =       [0.05,   0.05,   0.10,    0.15,    0.20,    0.25,    0.30,    0.40,    0.50]
+const mₐ =       [0.01,   0.03,   0.03,    0.03,    0.06,    0.10,    0.25,    0.35,    0.50]
+const cₐ =       [0.05,   0.10,   0.10,    0.15,    0.20,    0.25,    0.35,    0.45,    0.55]
+const fₐ =       [0.30,   0.30,   0.30,    0.30,    0.30,    0.40,    0.40,    0.50,    0.50]
+```
 
 # Infrastructure
 
@@ -416,19 +442,138 @@ The **mechanistic** model works as follows:
 
 - The probability of a condition becoming more severe is increased if appropriate care is not available: being in critical condition at home vs. in an ICU unit.
 
+
 ---
 # Compartments
 
 ![](Compartments.small.png)
+---
+# Compartments
+
+```{julia eval=FALSE}
+const COMPARTMENTS = [["S",                 "Susceptible"],
+                      ["E",                 "Exposed"],
+                      ["I",                 "Infectious"],
+                      ["J",                 "Severe"],
+                      ["H",                 "Hospitalised"],
+                      ["C",                 "ICU"],
+                      ["R",                 "Recovered"],
+                      ["F",                 "Fully_Recovered"],
+                      ["D",                 "Dead"],
+                      ["K",                 "Critical"],
+                      ["L",                 "Critical_Hospitalised"]]
+
+const COMPARTMENTS_LIST = [v[1] for v in COMPARTMENTS]
+const COMPARTMENTS_N    = length(COMPARTMENTS_LIST)
+```
+
 
 ---
 # Transition rates
 
 ![](Transitions.svg)
+
+---
+# Code: Differential equation for the evolution of the epidemy
+
+```{julia eval=FALSE}
+function epiDynamics!(dP, P, params, t)
+    # Destructuring of the compartments with all age groups (P is just one very long vector!)
+    c = 0
+    S = P[c*nAgeGroup + 1:c*nAgeGroup + nAgeGroup]; c += 1
+    
+    ...
+    
+    # Destructuring of the individual parameters
+    r₀, tₗ, tᵢ, tₕ, tᵤ, tᵣ,..,.  BED_max, ICU_max, Population = params
+
+    ...    
+    
+    # EI means flow from compartment E to compartment I
+    EI = ones(nAgeGroup) .* E / tₗ;  EI = max.(EI, 0.0001);     IE = -EI
+    IJ = mₐ              .* I / tᵢ;  IJ = max.(IJ, 0.0001);     JI = -IJ
+    
+    ...
+    
+    # dS is the decrease of compartment S: how many people are infected.
+    dS = - (sum(S)  / Population) .* β .* (γₑ.*E + γᵢ.*I + γⱼ.*J + γₖ.*K + γᵣ.*R)
+    # Exposed
+    dE = -dS + IE
+
+    ...
+    
+    # Vector change of population and update in place
+    result = vcat(dS, dE, dI, dJ, dH, dC, dR, dF, dD, dK, dL)
+end
+```
+
+---
+# ODE solution
+
+```{julia eval=FALSE}
+function calculateSolution(country, diseaseparams, countryparams;
+                           finalDate::Union{Nothing, Date} = nothing)
+
+    ...
+
+    ## Compartment vectors of the initial conditions
+    S0 = Age_Pyramid .- InfectedAtStart .- InfectiousAtStart .- DeathsAtStart
+    E0 = InfectedAtStart
+    I0 = InfectiousAtStart
+    J0 = 0.0001 .* ones(Float64, nAgeGroup)
+
+    ...
+
+    P0 = vcat(S0, E0, I0, J0, H0, C0, R0, F0, D0, K0, L0)
+
+    # Differential equation solver
+    model = ODEProblem(epiDynamics!, P0, tSpan, model_params)
+
+    sol = solve(model, Tsit5(); progress = false)
+
+    return sol
+end
+
+```
+
 ---
 # Initial results for Italy
 
 ![](DeathsForecast.png)
+
+---
+# Plot country
+
+```{julia eval=FALSE}
+function plotCountry(country::String; finalDate = Date(2020, 7, 1))
+    plotly()
+
+    sol = calculateSolution(country, DiseaseParameters,.......
+
+    p = Plots.plot(title = country)
+
+    xvar = countryData[country][:cases].t
+    yvar = countryData[country][:cases].deaths
+    p = Plots.scatter!(xvar, yvar, label = "", marker = :circle, markeralpha = 0.30)
+
+    xvar = timeModel2Real.(sol.t, country)
+    totalInCompartments = 0.0 .* getSummedCompartment(sol, "S")
+    for c in COMPARTMENTS_LIST
+        yvar = getSummedCompartment(sol, c)
+        totalInCompartments = totalInCompartments .+ yvar
+
+        p = Plots.plot!(xvar, yvar, label = c)
+    end
+
+    p = Plots.plot!(xvar, totalInCompartments, label = "Total")
+
+    p = Plots.xaxis!("")
+    p = Plots.yaxis!("", :log10)
+
+    return Plots.plot(p)
+end
+```
+
 
 ---
 # Bed usage
@@ -445,46 +590,44 @@ The **mechanistic** model works as follows:
 # After 3 minute optimisation
 
 ![](Vignette2.png)
-
 ---
-# Code samples
+# Optimise every country
 
-```{julia eval=FALSE,cache=FALSE}
-### Define a model as an Ordinary Differential Equation
-### epiDynamics! defines the stepwise evolution:
-###    function epiDynamics!(dP, P, params, t)
-
-using DifferentialEquations
-model = ODEProblem(epiDynamics!, P0, tSpan, parameters);
-
-sol = solve(model, Tsit5(); progress = false, progress_steps = 5);
-
-
-# Load the Blackbax optimisation library
+```{julia eval=FALSE}
 using BlackBoxOptim
-result = bboptimize(p -> singleCountryLoss(country, DiseaseParameters, p), 
-                    SearchRange = countryRange;
-                    Method = :adaptive_de_rand_1_bin, 
-                    MaxTime = maxtime, 
-                    TargetFitness = 2.0)
 
+function updateEveryCountry(; maxtime = 60)
+    for (country, _) in COUNTRY_LIST
 
+      ...
+
+      # Determine optimal parameters for each countryw
+      result = bboptimize(p -> singleCountryLoss(country, DiseaseParameters, p),
+                          SearchRange = countryRange;
+                          Method = :adaptive_de_rand_1_bin,
+                          MaxTime = maxtime,
+                          TargetFitness = 2.0,
+                          TraceMode = :compact)
+
+      ...
+
+    end
+end
 ```
 
-The actual code is available on Github.
 
 ---
 # Limitations
 
-- This is just a model. The map is not the territory.
+- This is just a model. The map is not the territory. SEIR models are notorious for over-inflating the spread of epidemies. 
 
-- Modelling the effect of social measures / different countries
+- Modelling the effect of social measures / different countries, especially their change over time.
 
-- Herd effect
+- Herd effect.
 
-- More compartments (post-recovery contagion)
+- More compartments (post-recovery contagion).
 
-- Bayesian approach and probabilistic models account better for incremental information
+- Bayesian approach and probabilistic models account better for incremental information.
 
 
 ---
@@ -497,9 +640,9 @@ Machine Learning Stack
 ---
 # What is differentiable programming?
 
-- Deep learning speed improvement heavily have heavily relied on the introduction of automatic differentiation (calculation of a derivative at the cost of a simgle function call). This is provided by the `Zygote.jl` library. 
+- Deep learning speed improvement have heavily relied on the introduction of automatic differentiation (calculation of a derivative at the cost of a single function call). 
 
-- This is restricted to the differentiation of mathematic formulas.
+- This is normally restricted to the differentiation of mathematic formulas.
 
 - `Flux` adds algorithmic differentiation: for example `for` loops, `if` statements. This dramatically extends the universe of possibilities.
 
@@ -518,9 +661,9 @@ But this doesn't work for richer models:
 
 - X-Ray images feeding into a pharmacokinetics model to optimise drug dosage.
 
-- Self-driving car with realistic physical of car of various road conditions.  
+- Self-driving car with realistic physical model of car given various road conditions.  
  
-- Example: Body movement
+- Example: Biomechanical model
 
 
 
@@ -528,48 +671,59 @@ But this doesn't work for richer models:
 
 
 ---
-# Code samples
+# Code sample (1/2)
 
+### Simple NN with 2 dense layers.
 
-.pull-left-50[
 ```{julia eval=FALSE,cache=FALSE}
-using Zygote, Flux
+using Flux
 
+# Define a model of a dense layer
+# σ is the activation function.
 dense(W, b, σ = identity) = x -> σ.(W * x .+ b)
 
+# For backpropagation, derivatives are calculated 
+# starting from the end.
+#  ∘ denotes function composition
 chain(f...) = foldl(∘, reverse(f))
 
+# Easy multilayer perceptron. 
+# Final model output is the sum of the activations
 mlp = chain(
     dense(randn(5, 10), randn(5), tanh), 
     dense(randn(2, 5), randn(2)))
 
+# do notation is one way to declare an anonymous 
+# function (lambda function)
 x = rand(10)
-
 δm = gradient(mlp) do m
     sum(m(x))
 end
 
-# Gradient descent
+# Gradient descent - η: learning rate
 m -= η * δm 
 ```
-]
 
---
+---
+# Code sample (2/2)
 
-.pull-right-50[
-## Let's add calls to `Cuda` and `Python`
+### Let's offload that to the GPU with `Cuda`...
 
 ```{julia eval=FALSE,cache=FALSE}
 using CuArrays
 
 cuda() do
-    δm = Zygote.gradient(mlp) do m
+    δm = gradient(mlp) do m
         sum(m(x))
     end
 end
 ```
 
-```
+--
+
+### ... or use a model defined in `Python`
+
+```{julia eval=FALSE,cache=FALSE}
 using PyCall
 
 py"""
@@ -578,11 +732,10 @@ py"""
       return F.sigmoid(W @ x + b)
 """
 
-δW, δb = gradient(W, b do W, b) do
+δW, δb = gradient(W, b) do W, b
     sum( (foo(W, b, x) .- [0.0, 1.0]).^2 )
 end
 ```
-]
 
 
 ---
@@ -647,13 +800,15 @@ Youtube channel: [https://www.youtube.com/user/JuliaLanguage]()
 
 _JuliaCon 2019 | The Unreasonable Effectiveness of Multiple Dispatch | Stefan Karpinski_ [https://www.youtube.com/watch?v=kc9HwsxE1OY]()
 
-Osthus, D., Gattiker, J., Priedhorsky, R., & Del Valle, S. Y. (2019). _Dynamic Bayesian influenza forecasting in the United States with hierarchical discrepancy (with discussion)_. Bayesian Analysis, 14(1), 261-312.
+Osthus, D., Gattiker, J., Priedhorsky, R., & Del Valle, S. Y. (2019). _Dynamic Bayesian influenza forecasting in the United States with hierarchical discrepancy (with discussion)_. Bayesian Analysis, 14(1), 261-312. [https://arxiv.org/abs/1708.09481]()
+
+_Introduction to SEIR Models_ by Nakul Chitnis, Workshop on Mathematical Models of Climate Variability, Environmental Change and Infectious Diseases [http://indico.ictp.it/event/7960/session/3/contribution/19/material/slides/0.pdf]()
 
 *** 
 
-Written in **RStudio** in [R Markdown]([https://rmarkdown.rstudio.com]())
+Code written in **Atom** with the **JunoLab** extension.
 
-Slides created via the R package [**xaringan**]([https://github.com/yihui/xaringan]()).
+Slides written in **RStudio** in [R Markdown]([https://rmarkdown.rstudio.com]()) and formatted with the [**Xaringan**]([https://github.com/yihui/xaringan]()) package.
 
 (C) Emmanuel Rialland - [Emmanuel-R8.github.io]() & [www.linkedin.com/in/emmanuelrialland]()
 
