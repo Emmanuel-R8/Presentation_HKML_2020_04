@@ -27,7 +27,7 @@ class: center, middle, inverse, title-slide
 
 # Plan for today
 
-- What is Julia and short comparison
+- What is Julia?
 
 --
 
@@ -35,7 +35,7 @@ class: center, middle, inverse, title-slide
 
 --
 
-- Machine Learning - the Julia Flux.jl library
+- Machine Learning - the Julia `SciML.jl` machine learning stack
 
 ---
 class: inverse, center, middle
@@ -90,7 +90,6 @@ _Source: [https://julialang.org/blog/2012/02/why-we-created-julia/](https://juli
 - Your preferred IDE supports it. Atom is the most mature, but VS Code, VIM, Emacs, SublimeText work fine. (This presentation is made with RStudio which can include Julia in its markdown.)
 
 - Great community active and helpful on Discourse and Slack.
-
 
 
 ---
@@ -264,7 +263,7 @@ end
 ```
 
 ```
-## add_mult (generic function with 1 method)
+## add_mult (generic function with 2 methods)
 ```
 
 ```julia
@@ -275,7 +274,7 @@ end
 
 ```
 ## 
-## define i64 @julia_add_mult_17480(i64, i64) {
+## define i64 @julia_add_mult_17880(i64, i64) {
 ## top:
 ##   %2 = mul i64 %1, 7
 ##   %3 = add i64 %2, %0
@@ -306,7 +305,7 @@ end
 
 ```
 ## 
-## define double @julia_add_mult_17504(double, double) {
+## define double @julia_add_mult_17901(double, double) {
 ## top:
 ##   %2 = fmul double %1, 7.000000e+00
 ##   %3 = fadd double %2, %0
@@ -366,7 +365,7 @@ end
 
 ```
 ## 	.text
-## 	movabsq	$139729057784560, %rax  # imm = 0x7F1534DAA2F0
+## 	movabsq	$139848117152440, %rax  # imm = 0x7F30ED586AB8
 ## 	vmulsd	(%rax), %xmm1, %xmm1
 ## 	vaddsd	%xmm0, %xmm1, %xmm0
 ## 	retq
@@ -853,7 +852,7 @@ function dudt!(du, u, p, t)
     du[1] = dcontrol
     du[2] = dstate
 end
-
+ 
 t_span = (0.0, 25.0); t_steps = 0.0:1.0:25.0
 control0 = 0.0; state0 = 1.1
 mixedProblem = ODEProblem(dudt!, [control0, state0], t_span, pModel)
@@ -881,7 +880,7 @@ result = DiffEqFlux.sciml_train(loss_adjoint, θ, BFGS(initial_stepnorm = 0.01))
 ```
 
 ---
-# Sample output
+# Optimisation output
 
 ```
 * Status: success
