@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Introduction to Julia</title>
+    <title>Julia</title>
     <meta charset="utf-8" />
     <meta name="author" content="Emmanuel Rialland" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
@@ -12,8 +12,8 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# Introduction to Julia
-## Data Science and Machine Learning
+# Julia
+## Hong Kong Machine Learning Meetup
 ### Emmanuel Rialland
 ### April, 29th 2020
 
@@ -264,17 +264,18 @@ end
 ```
 
 ```
-## add_mult (generic function with 2 methods)
+## add_mult (generic function with 1 method)
 ```
 
 ```julia
+
 
 @code_llvm debuginfo=:none add_mult(2, 3)
 ```
 
 ```
 ## 
-## define i64 @julia_add_mult_17786(i64, i64) {
+## define i64 @julia_add_mult_17480(i64, i64) {
 ## top:
 ##   %2 = mul i64 %1, 7
 ##   %3 = add i64 %2, %0
@@ -290,7 +291,14 @@ end
 ```julia
 function add_mult(a::Float64, b::Float64)::Float64
   return a + b * 7.0
-end;
+end
+```
+
+```
+## add_mult (generic function with 2 methods)
+```
+
+```julia
 
 
 @code_llvm debuginfo=:none add_mult(2.0, 3.0)
@@ -298,7 +306,7 @@ end;
 
 ```
 ## 
-## define double @julia_add_mult_17807(double, double) {
+## define double @julia_add_mult_17504(double, double) {
 ## top:
 ##   %2 = fmul double %1, 7.000000e+00
 ##   %3 = fadd double %2, %0
@@ -348,7 +356,7 @@ end
 ```julia
 function add_mult(a::Float64, b::Float64)::Float64
   return a + b * 7.0
-end;
+end
 ```
 
 
@@ -358,7 +366,7 @@ end;
 
 ```
 ## 	.text
-## 	movabsq	$140325743692728, %rax  # imm = 0x7FA0221B0BB8
+## 	movabsq	$139729057784560, %rax  # imm = 0x7F1534DAA2F0
 ## 	vmulsd	(%rax), %xmm1, %xmm1
 ## 	vaddsd	%xmm0, %xmm1, %xmm0
 ## 	retq
@@ -556,7 +564,7 @@ function epiDynamics!(dP, P, params, t)
     ...
     
     # dS is the decrease of compartment S: how many people are infected.
-    dS = - (sum(S)  / Population) .* β .* (γₑ.*E + γᵢ.*I + γⱼ.*J + γₖ.*K + γᵣ.*R)
+    dS = - sum(γₑ.*E + γᵢ.*I + γⱼ.*J + γₖ.*K + γᵣ.*R)  / Population .* (S .* β)
     # Exposed
     dE = -dS + IE
 
@@ -696,45 +704,33 @@ end
 ---
 class: inverse, center, middle
 
-# The `Flux.jl` machine learning library
+# The `SciML.jl` library
 
-Machine Learning Stack
+## Scientific Machine Learning Stack
 
 ---
-# What is differentiable programming?
+# Modern machine learning - Differentiable programming
+
+## Describing a model
+
+- `Flux.jl` is a small  library (few 1,000's of lines compared to millions for TF and PyTorch) and written in a single language (no Python, C, C++...) 
+
+- Provides an easy way to describe neural networks (Keras-style)
+
+## Transform it into a system of differential equations
 
 - Deep learning speed improvement have heavily relied on the introduction of automatic differentiation (calculation of a derivative at the cost of a single function call). 
 
 - This is normally restricted to the differentiation of mathematic formulas.
 
-- `Flux` adds algorithmic differentiation: for example `for` loops, `if` statements. This dramatically extends the universe of possibilities.
+- `Zygote.jl` adds algorithmic differentiation: for example `for` loops, `if` statements. This dramatically extends the universe of possibilities.
 
-- `Flux` also easily offloads calculation to GPUs or TPUs (Google's tensor processing units).
+## Solving the equations
 
-- `Flux` small (few 1,000's of lines compared to millions for TF and PyTorch) and written in a single language (no Python, C, C++...)
-
----
-# Examples
-
-- Perceptron is a simple formula: optimise `\(Loss(y - \hat{y})\)` for `\(y = \sigma(W . x + b)\)`. Autodiff is enough.
-
-But this doesn't work for richer models:
-
-- Image recognition with detailed physical model of lenses.
-
-- X-Ray images feeding into a pharmacokinetics model to optimise drug dosage.
-
-- Self-driving car with realistic physical model of car given various road conditions.  
- 
-- Example: Biomechanical model
-
-
-
-![](DiffProg.png)
-
+- `DiffEqFlux.jl` bridges `DifferentialEquations.jl` and `Flux.jl`: Universal neural differential equations with O(1) backprop, GPUs/TPUs backends, and stiff and non-stiff DE solvers.
 
 ---
-# Code sample (1/2)
+# Simple code sample (1/2)
 
 ### Simple NN with 2 dense layers.
 
@@ -757,8 +753,8 @@ mlp = chain(
     dense(randn(5, 10), randn(5), tanh), 
     dense(randn(2, 5), randn(2)))
 
-# do notation is one way to declare an anonymous 
-# function (lambda function)
+# do notation is one way to declare an anonymous (lambda) function.
+# Equivalent to: δm = gradient(m -&gt; sum(m(x)), mlp)
 x = rand(10)
 δm = gradient(mlp) do m
     sum(m(x))
@@ -769,7 +765,7 @@ m -= η * δm
 ```
 
 ---
-# Code sample (2/2)
+# Simple code sample (2/2)
 
 ### Let's offload that to the GPU with `Cuda`...
 
@@ -801,6 +797,115 @@ py"""
 δW, δb = gradient(W, b) do W, b
     sum( (foo(W, b, x) .- [0.0, 1.0]).^2 )
 end
+```
+
+---
+# Machine Learning is more than neural networks
+
+- A neural network is a conceptually simple formula: optimise `\(Loss(y - \hat{y})\)` for `\(y = \sigma(W . x + b)\)`. Autodiff is enough.
+
+But this doesn't work for richer models:
+
+- Image recognition with detailed physical model of lenses.
+
+- X-Ray images feeding into a pharmacokinetics model to optimise drug dosage.
+
+- Self-driving car with realistic physical model of car given various road conditions.  
+ 
+- Example: Biomechanical model
+
+
+
+![](DiffProg.png)
+
+---
+# Example: Neural network used for optimal control
+
+![](NNControl.svg)
+
+---
+# Harder code sample - using a NN for optimal control (1/2)
+
+
+```julia
+using DiffEqFlux, Flux, Optim, OrdinaryDiffEq
+
+# Create a NN and create a vector of all its parameters
+aNN = FastChain(FastDense(2, 16, tanh), FastDense(16, 16, tanh), FastDense(16, 1))
+pNN = initial_params(aNN)
+
+# Parameters for the physical model to control
+pModel1 = 0.5; pModel2 = -0.5
+pModel = [pModel1; pModel2]
+
+pAll = [pNN; pModel1; pModel2]
+
+function dudt!(du, u, p, t)
+    control, state = u 
+    pnn = p[1:length(pNN)]; pm1 = p[end-1]; pm2 = p[end]
+    
+    # Change of control depending on conditions
+    dcontrol= ann(u, pnn)[1]
+    
+    # Change of the physical model state
+    dstate = pm1 * control + pm2 * state
+
+    du[1] = dcontrol
+    du[2] = dstate
+end
+
+t_span = (0.0, 25.0); t_steps = 0.0:1.0:25.0
+control0 = 0.0; state0 = 1.1
+mixedProblem = ODEProblem(dudt!, [control0, state0], t_span, pModel)
+```
+
+---
+# Harder code sample - using a NN for optimal control (2/2)
+
+
+```julia
+# Global variable containing total world/model state
+θ = [state0; pAll]
+
+function predict_adjoint(θ)
+  state = θ[1]
+  p     = θ[2:end]
+  solution = Array(concrete_solve(mixedProblem, Tsit5(), [0, state], p, saveat = t_steps))
+  return solution[2, :]  # Only interested in state, not control
+end
+
+REFERENCE_VALUE = 1.0
+loss_adjoint(θ) = sum(abs2, predict_adjoint(θ) .- REFERENCE_VALUE)
+
+result = DiffEqFlux.sciml_train(loss_adjoint, θ, BFGS(initial_stepnorm = 0.01))
+```
+
+---
+# Sample output
+
+```
+* Status: success
+
+* Candidate solution
+   Minimizer: [1.00e+00, 4.33e-02, 3.72e-01,  ...]
+   Minimum:   6.572520e-13
+
+* Found with
+   Algorithm:     BFGS
+   Initial Point: [1.10e+00, 4.18e-02, 3.64e-01,  ...]
+
+* Convergence measures
+   |x - x'|               = 0.00e+00 ≤ 0.0e+00
+   |x - x'|/|x'|          = 0.00e+00 ≤ 0.0e+00
+   |f(x) - f(x')|         = 0.00e+00 ≤ 0.0e+00
+   |f(x) - f(x')|/|f(x')| = 0.00e+00 ≤ 0.0e+00
+   |g(x)|                 = 5.45e-06 ≰ 1.0e-08
+
+* Work counters
+   Seconds run:   8  (vs limit Inf)
+   Iterations:    23
+   f(x) calls:    172
+   ∇f(x) calls:   172
 ```
 
 
@@ -844,22 +949,34 @@ Result: "Labrador retriever
 ]
 
 
+---
+class: inverse, center, middle
 
+# From now on, you will think about Julia when...
+
+---
+# ... you look at the sky: _Approximate inference for constructing astronomical catalogs from images_
+
+![](M33.small.jpg)
+
+---
+# ... you are in a plane: _Next-Generation Airborne Collision Avoidance System_
+
+![](ACAS-X.png)
+
+---
+# ... see migrating species: _Circuitscape: modeling landscape connectivity to promote conservation and human health_
+
+![](CircuitScape.png)
 
 ---
 # Thanks and links
 
-NeherLab: https://neherlab.org/covid19/
+Julia: [https://julialang.org]() ; Youtube channel: [https://www.youtube.com/user/JuliaLanguage]() ; SciML: [https://sciml.ai/]()
 
-Julia: [https://julialang.org]()
+LoopVectorization: [https://chriselrod.github.io/LoopVectorization.jl/latest/]() ; Differentiable programming  [https://fluxml.ai/2019/02/07/what-is-differentiable-programming.html]()
 
-FluxML: [https://fluxml.ai/]()
-
-LoopVectorization: [https://chriselrod.github.io/LoopVectorization.jl/latest/]()
-
-[https://fluxml.ai/2019/02/07/what-is-differentiable-programming.html]()
-
-Youtube channel: [https://www.youtube.com/user/JuliaLanguage]()
+NeherLab: [https://neherlab.org/covid19/]() ; Julia case studies: [https://juliacomputing.com/case-studies/]()
 
 *** 
 
@@ -873,11 +990,9 @@ _Introduction to SEIR Models_ by Nakul Chitnis, Workshop on Mathematical Models 
 
 *** 
 
-Code written in **Atom** with the **JunoLab** extension.
+Code written in **Atom** with the **JunoLab** extension ; Slides written in **RStudio** in [R Markdown]([https://rmarkdown.rstudio.com]()) and formatted with the [**Xaringan**]([https://github.com/yihui/xaringan]()) package.
 
-Slides written in **RStudio** in [R Markdown]([https://rmarkdown.rstudio.com]()) and formatted with the [**Xaringan**]([https://github.com/yihui/xaringan]()) package.
-
-(C) Emmanuel Rialland - [Emmanuel-R8.github.io]() &amp; [www.linkedin.com/in/emmanuelrialland]()
+Copyright (C) Emmanuel Rialland - [Emmanuel-R8.github.io]() &amp; [www.linkedin.com/in/emmanuelrialland]()
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="libs/remark-latest.min.js"></script>
